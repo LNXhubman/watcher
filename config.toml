@@ -1,0 +1,15 @@
+# Watcher configuration. Values here are placeholders until the foundation is built.
+
+[watch]
+zipcode = "95051"
+
+[llm]
+# Cheap, fast model for bulk relevance scoring and short summaries.
+bulk_model = "claude-haiku-5-5"
+# Stronger model for the weekly report and discovery on odd sites.
+report_model = "claude-sonnet-5-5"
+
+[budget]
+# Conservative placeholder: stop the daily run when estimated spend reaches this.
+# Replace once the Anthropic API spend limit is known (see context.md open question 2).
+daily_cap_usd = 1.00

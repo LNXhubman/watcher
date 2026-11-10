@@ -20,23 +20,29 @@
   <h2>Weekly report</h2>
   <p class="intro">Summary of the past week, built from the daily collections.</p>
   <span class="badge">Under construction</span>
+  <div class="tabs" role="tablist" aria-label="Level of government">
+    <button type="button" role="tab" data-level="city" aria-selected="false">City</button>
+    <button type="button" role="tab" data-level="county" aria-selected="false">County</button>
+    <button type="button" role="tab" data-level="state" aria-selected="false">State</button>
+    <button type="button" role="tab" data-level="federal" aria-selected="false">Federal</button>
+  </div>
   <div class="levels">
-    <div class="level">
+    <div class="level" data-level="city">
       <h3>City</h3>
       <p class="def">Municipal government: city council, mayor, planning and zoning boards, city departments.</p>
       <p class="placeholder">No reports yet.</p>
     </div>
-    <div class="level">
+    <div class="level" data-level="county">
       <h3>County</h3>
       <p class="def">County government: board of commissioners or supervisors, sheriff, courts, county-wide services and districts.</p>
       <p class="placeholder">No reports yet.</p>
     </div>
-    <div class="level">
+    <div class="level" data-level="state">
       <h3>State</h3>
       <p class="def">State government: legislature, governor, state agencies and courts.</p>
       <p class="placeholder">No reports yet.</p>
     </div>
-    <div class="level">
+    <div class="level" data-level="federal">
       <h3>Federal</h3>
       <p class="def">Federal government: Congress, the President, federal agencies and courts.</p>
       <p class="placeholder">No reports yet.</p>
@@ -44,5 +50,105 @@
   </div>
 </main>
 <footer><p>Watcher is under construction.</p></footer>
+<script src="data/site-data.js"></script>
+<script>
+(function () {
+  var d = window.WATCHER_DATA;
+  if (!d) return;
+  var PAGE = 25;
+  document.querySelector(".intro").textContent += " Report " + d.iso_week + ": " + d.start + " to " + d.end + ".";
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  Object.keys(d.levels).forEach(function (level) {
+    var data = d.levels[level];
+    var tab = document.querySelector('.tabs button[data-level="' + level + '"]');
+    if (tab) tab.textContent += " (" + data.total + ")";
+    var card = document.querySelector('.level[data-level="' + level + '"]');
+    if (!card || !data.total) return;
+    if (!window.WATCHER_START) window.WATCHER_START = level;
+    var summary = card.querySelector(".placeholder");
+    summary.textContent = data.total + " items this week. Click a word to filter the list.";
+    summary.className = "count";
+
+    var cloud = el("div", "cloud"), chip = el("p", "filter"), list = el("ul", "items"), more = el("button", "more");
+    chip.hidden = true;
+    card.appendChild(cloud); card.appendChild(chip); card.appendChild(list); card.appendChild(more);
+    var state = { word: null, limit: PAGE };
+
+    var counts = data.words.map(function (w) { return w[1]; });
+    var lo = Math.min.apply(null, counts), hi = Math.max.apply(null, counts);
+    var buttons = {};
+    data.words.slice().sort().forEach(function (w) {
+      var b = el("button", "word", w[0]);
+      b.type = "button";
+      b.title = w[1] + " items";
+      b.style.fontSize = (0.95 + 1.8 * (w[1] - lo) / ((hi - lo) || 1)).toFixed(2) + "rem";
+      b.addEventListener("click", function () {
+        state.word = state.word === w[0] ? null : w[0];
+        state.limit = PAGE;
+        draw();
+      });
+      buttons[w[0]] = b;
+      cloud.appendChild(b);
+    });
+    if (!data.words.length) cloud.hidden = true;
+    more.addEventListener("click", function () { state.limit += PAGE; draw(); });
+
+    function draw() {
+      var items = data.items.filter(function (it) {
+        return !state.word || it.title.toLowerCase().split(/[^a-z'-]+/).indexOf(state.word) !== -1;
+      });
+      Object.keys(buttons).forEach(function (w) { buttons[w].setAttribute("aria-pressed", String(w === state.word)); });
+      chip.hidden = !state.word;
+      chip.textContent = "";
+      if (state.word) {
+        chip.appendChild(document.createTextNode(items.length + " items with “" + state.word + "” "));
+        var clear = el("button", "clear", "Clear filter");
+        clear.type = "button";
+        clear.addEventListener("click", function () { state.word = null; state.limit = PAGE; draw(); });
+        chip.appendChild(clear);
+      }
+      list.textContent = "";
+      items.slice(0, state.limit).forEach(function (it) {
+        var li = el("li");
+        var a = el("a", null, it.title);
+        a.href = it.url;
+        li.appendChild(a);
+        li.appendChild(el("span", "meta", (it.changed ? "changed" : it.type.replace("_", " ")) + ", " + it.date));
+        list.appendChild(li);
+      });
+      var left = items.length - state.limit;
+      more.hidden = left <= 0;
+      more.textContent = "Show " + Math.min(PAGE, left) + " more (" + left + " left)";
+    }
+    draw();
+  });
+})();
+</script>
+<script>
+(function () {
+  var tabs = [].slice.call(document.querySelectorAll(".tabs button"));
+  var cards = [].slice.call(document.querySelectorAll(".level"));
+  function select(level) {
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.level === level)); });
+    cards.forEach(function (c) { c.hidden = c.dataset.level !== level; });
+  }
+  tabs.forEach(function (b) {
+    b.addEventListener("click", function () {
+      select(b.dataset.level);
+      history.replaceState(null, "", "#" + b.dataset.level);
+    });
+  });
+  var want = location.hash.slice(1);
+  var known = tabs.some(function (b) { return b.dataset.level === want; });
+  select(known ? want : (window.WATCHER_START || "city"));
+})();
+</script>
 </body>
 </html>

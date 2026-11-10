@@ -20,23 +20,29 @@
   <h2>Upcoming</h2>
   <p class="intro">Meetings and public comment deadlines coming up.</p>
   <span class="badge">Under construction</span>
+  <div class="tabs" role="tablist" aria-label="Level of government">
+    <button type="button" role="tab" data-level="city" aria-selected="false">City</button>
+    <button type="button" role="tab" data-level="county" aria-selected="false">County</button>
+    <button type="button" role="tab" data-level="state" aria-selected="false">State</button>
+    <button type="button" role="tab" data-level="federal" aria-selected="false">Federal</button>
+  </div>
   <div class="levels">
-    <div class="level">
+    <div class="level" data-level="city">
       <h3>City</h3>
       <p class="def">Municipal government: city council, mayor, planning and zoning boards, city departments.</p>
       <p class="placeholder">Nothing scheduled yet.</p>
     </div>
-    <div class="level">
+    <div class="level" data-level="county">
       <h3>County</h3>
       <p class="def">County government: board of commissioners or supervisors, sheriff, courts, county-wide services and districts.</p>
       <p class="placeholder">Nothing scheduled yet.</p>
     </div>
-    <div class="level">
+    <div class="level" data-level="state">
       <h3>State</h3>
       <p class="def">State government: legislature, governor, state agencies and courts.</p>
       <p class="placeholder">Nothing scheduled yet.</p>
     </div>
-    <div class="level">
+    <div class="level" data-level="federal">
       <h3>Federal</h3>
       <p class="def">Federal government: Congress, the President, federal agencies and courts.</p>
       <p class="placeholder">Nothing scheduled yet.</p>
@@ -44,5 +50,24 @@
   </div>
 </main>
 <footer><p>Watcher is under construction.</p></footer>
+<script>
+(function () {
+  var tabs = [].slice.call(document.querySelectorAll(".tabs button"));
+  var cards = [].slice.call(document.querySelectorAll(".level"));
+  function select(level) {
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.level === level)); });
+    cards.forEach(function (c) { c.hidden = c.dataset.level !== level; });
+  }
+  tabs.forEach(function (b) {
+    b.addEventListener("click", function () {
+      select(b.dataset.level);
+      history.replaceState(null, "", "#" + b.dataset.level);
+    });
+  });
+  var want = location.hash.slice(1);
+  var known = tabs.some(function (b) { return b.dataset.level === want; });
+  select(known ? want : (window.WATCHER_START || "city"));
+})();
+</script>
 </body>
 </html>

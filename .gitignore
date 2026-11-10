@@ -4,3 +4,12 @@ CLAUDE.md
 
 # Local planning
 components.md
+context.md
+
+# Python and runtime data
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+data/
+reports/

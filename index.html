@@ -15,6 +15,7 @@
     <p class="motto">Tower eyes, outward.</p></div>
   </a>
   <p class="tagline">Local government activity for your zipcode: city, county, state and federal.</p>
+  <p class="tagline" id="latest"></p>
   <div class="zip-bar">
     <label for="zip">Zipcode</label>
     <input id="zip" type="text" inputmode="numeric" maxlength="5" placeholder="e.g. 90210" disabled>
@@ -55,5 +56,16 @@
   <p class="couplet">Let tower eyes look outward, wide and keen,<br>And keep the halls of power plainly seen.</p>
   <p>Watcher is under construction. Open this file locally in your browser.</p>
 </footer>
+<script src="data/site-data.js"></script>
+<script>
+(function () {
+  var d = window.WATCHER_DATA;
+  if (!d) return;
+  var total = 0;
+  Object.keys(d.levels).forEach(function (k) { total += d.levels[k].total; });
+  var el = document.getElementById("latest");
+  el.textContent = "Latest report " + d.iso_week + ": " + total + " items collected. Last run: " + d.last_run_status + ".";
+})();
+</script>
 </body>
 </html>
